@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { TILE_SIZE } from "./pixel";
 
 export interface Region {
 	id: number;
@@ -157,7 +158,7 @@ export class RegionService {
 		const [tileX, tileY] = tile;
 		const [pixelX, pixelY] = pixel;
 
-		tileSize ??= 1000;
+		tileSize ??= TILE_SIZE;
 		canonicalZ ??= 11;
 		const worldPixels = tileSize * Math.pow(2, canonicalZ);
 

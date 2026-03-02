@@ -61,6 +61,8 @@ function calculateLevel(pixelsPainted: number): number {
 	return Math.pow(pixelsPainted / LEVEL_BASE_PIXEL, LEVEL_EXPONENT) + 1;
 }
 
+export const TILE_SIZE = 1000;
+
 const BAN_ON_BANNED_IP = process.env["BAN_ON_BANNED_IP"] === "1";
 
 export class PixelService {
@@ -76,9 +78,9 @@ export class PixelService {
 		this.authService = new AuthService(prisma);
 		this.userService = new UserService(prisma);
 
-		const canvas = createCanvas(1000, 1000);
+		const canvas = createCanvas(TILE_SIZE, TILE_SIZE);
 		const ctx = canvas.getContext("2d");
-		ctx.clearRect(0, 0, 1000, 1000);
+		ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
 		this.emptyTile = canvas.toBuffer("image/png");
 
 		// Clean up cache every 10 minutes
@@ -245,9 +247,9 @@ export class PixelService {
 	}
 
 	async updatePixelTile(tileX: number, tileY: number, season = 0): Promise<{ buffer: Buffer; updatedAt: Date }> {
-		const canvas = createCanvas(1000, 1000);
+		const canvas = createCanvas(TILE_SIZE, TILE_SIZE);
 		const ctx = canvas.getContext("2d");
-		const imageData = ctx.createImageData(1000, 1000);
+		const imageData = ctx.createImageData(TILE_SIZE, TILE_SIZE);
 
 		const pixels = await this.prisma.pixel.findMany({
 			where: { tileX, tileY, season },
@@ -264,7 +266,7 @@ export class PixelService {
 			if (pixel.colorId === 0) continue;
 
 			const [r, g, b] = color.rgb;
-			const index = (pixel.y * 1000 + pixel.x) * 4;
+			const index = (pixel.y * TILE_SIZE + pixel.x) * 4;
 			imageData.data[index + 0] = r;
 			imageData.data[index + 1] = g;
 			imageData.data[index + 2] = b;
@@ -321,7 +323,7 @@ export class PixelService {
 
 		try {
 			await this.prisma.$transaction(async (tx) => {
-				canvas = createCanvas(1000, 1000);
+				canvas = createCanvas(TILE_SIZE, TILE_SIZE);
 				const ctx = canvas.getContext("2d");
 
 				const tiles = await tx.$queryRaw<{ season: number; x: number; y: number; imageData: Buffer }[]>(
@@ -333,10 +335,10 @@ export class PixelService {
 					image = await loadImage(tile.imageData);
 					ctx.drawImage(image, 0, 0);
 				} else {
-					ctx.clearRect(0, 0, 1000, 1000);
+					ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
 				}
 
-				const imageData = ctx.getImageData(0, 0, 1000, 1000);
+				const imageData = ctx.getImageData(0, 0, TILE_SIZE, TILE_SIZE);
 				const data = imageData.data;
 
 				for (const pixel of pixels) {
@@ -345,7 +347,7 @@ export class PixelService {
 
 					const [r, g, b] = color.rgb;
 					const a = pixel.colorId === 0 ? 0 : 255;
-					const index = (pixel.y * 1000 + pixel.x) * 4;
+					const index = (pixel.y * TILE_SIZE + pixel.x) * 4;
 					data[index + 0] = r;
 					data[index + 1] = g;
 					data[index + 2] = b;
@@ -454,7 +456,7 @@ export class PixelService {
 			if (!coord) continue;
 			const { x, y } = coord;
 
-			if (x === undefined || y === undefined || x < 0 || x >= 1000 || y < 0 || y >= 1000) {
+			if (x === undefined || y === undefined || x < 0 || x >= TILE_SIZE || y < 0 || y >= TILE_SIZE) {
 				continue;
 			}
 
