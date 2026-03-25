@@ -2,6 +2,9 @@ http://localhost:8000, https://localhost:8080 {
 	tls internal
 
 	# New frontend
+	handle /login* {
+		reverse_proxy localhost:3000
+	}
 	handle /beta* {
 		reverse_proxy {$FRONTEND_HOST:localhost}:{$FRONTEND_PORT:3001}
 	}

@@ -28,6 +28,11 @@ export default function (app: App) {
 	app.get("/discord/unlink", (_req, res) => res.redirect("/login/discord"));
 
 	app.get("/discord/configured", authMiddleware, (_req, res) => {
+		console.log("CONFIG CHECK:");
+		console.log("ID:", process.env.DISCORD_CLIENT_ID);
+		console.log("SECRET:", process.env.DISCORD_CLIENT_SECRET);
+		console.log("REDIRECT:", process.env.DISCORD_REDIRECT_URI);
+
 		if (!discordService.isConfigured) {
 			return res.status(503)
 				.json(createErrorResponse("Discord OAuth is not configured", 503));

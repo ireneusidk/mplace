@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"exec": "concurrently \"caddy run --config ./Caddyfile\" \"npm run dev\"",
-		"dev": "tsx watch src",
+		"dev": "tsx watch -r dotenv/config src",
 		"build": "tsc",
 		"start": "node dist",
 		"prepare": "husky",

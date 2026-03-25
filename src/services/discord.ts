@@ -117,6 +117,7 @@ export default class DiscordService {
 			where: { id: userId },
 			data: {
 				discordUserId: null,
+				discord: null,
 				chargesCooldownMs: COOLDOWN_MS
 			}
 		});
