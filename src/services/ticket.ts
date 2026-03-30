@@ -23,7 +23,9 @@ export class TicketService {
 		this.userService = new UserService(this.prisma);
 		this.notificationService = new NotificationService(this.prisma);
 	}
-
+	async resolveDirectBan(userId: number, moderatorUser: number) {
+	await this.userService.ban(userId, true, BanReason.Other);
+}
 	async reportUser(input: ReportUserInput): Promise<Ticket> {
 		const image = await loadImage(input.image.buffer);
 		const canvas = createCanvas(image.width, image.height);

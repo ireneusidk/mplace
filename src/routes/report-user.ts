@@ -103,24 +103,22 @@ export default function (app: App) {
 		}
 	});
 
-	app.post("/admin/ban-user", authMiddleware, adminMiddleware, useMulterSingle("image"), async (req: AuthenticatedRequest, res) => {
-		try {
-			const ticket = await makeTicket(req, res);
-			if (!ticket) {
-				return;
-			}
+app.post("/admin/ban-user", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
+	try {
+		const reportedUserId = Number(req.body.reportedUserId);
 
-			await ticketService.resolve(ticket.id, req.user!.id, TicketResolution.Ban);
-
-			return res.status(200)
-				.json({});
-		} catch (error) {
-			console.error("Error reporting user:", error);
-			return res.status(500)
-				.json({ error: "Internal Server Error", status: 500 });
+		if (!reportedUserId) {
+			return res.status(400).json({ error: "Missing user id" });
 		}
-	});
 
+		await ticketService.resolveDirectBan(reportedUserId, req.user!.id);
+
+		return res.status(200).json({});
+	} catch (error) {
+		console.error("Error banning user:", error);
+		return res.status(500).json({ error: "Internal Server Error" });
+	}
+});
 	app.post("/moderator/timeout-user", authMiddleware, adminMiddleware, useMulterSingle("image"), async (req: AuthenticatedRequest, res) => {
 		try {
 			const ticket = await makeTicket(req, res);
@@ -138,4 +136,27 @@ export default function (app: App) {
 				.json({ error: "Internal Server Error", status: 500 });
 		}
 	});
+app.post("/moderator/users/suspend", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
+	try {
+		console.log("BODY:", req.body);
+
+		const userIds = req.body.userIds;
+
+		if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+			return res.status(400).json({ error: "Missing user ids" });
+		}
+
+		for (const userId of userIds) {
+			await ticketService.resolveDirectBan(userId, req.user!.id);
+		}
+
+		return res.status(200).json({});
+	} catch (error) {
+		console.error("Error suspending user FULL:", error);
+	console.error("STACK:", (error as any)?.stack);
+
+		console.error("Error suspending user:", error);
+		return res.status(500).json({ error: "Internal Server Error" });
+	}
+});
 }
