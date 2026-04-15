@@ -5,7 +5,8 @@ import { AuthenticatedRequest, UserRole } from "../types/index.js";
 import { Prisma, Ticket } from "@prisma/client";
 import fs from "fs/promises";
 import { UserService } from "../services/user.js";
-
+import { TicketService } from "../services/ticket.js";
+import { TicketResolution } from "../types/index.js";
 const REPORT_REASONS = [
 	{ key: "doxxing", label: "Doxxing" },
 	{ key: "inappropriate_content", label: "Inappropriate Content" },
@@ -33,7 +34,7 @@ export const adminMiddleware = async (req: AuthenticatedRequest, res: Response, 
 };
 
 const userService = new UserService(prisma);
-
+const ticketService = new TicketService(prisma);
 // TODO: Split this up further. Just ignoring so I can actually read this file without zigzags for now
 // eslint-disable-next-line max-lines-per-function
 export default function (app: App) {
@@ -295,6 +296,31 @@ export default function (app: App) {
 		}
 	});
 
+app.post("/admin/users/suspend", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
+		try {
+			const userId = Number.parseInt(req.body["userId"] as string ?? "") || 0;
+			const ticketId = req.body["ticketId"] as string;
+			const type = req.body["type"] as string; // "timeout" or "ban"
+
+			if (Number.isNaN(userId) || userId <= 0) {
+				return res.status(400)
+					.json({ error: "Bad Request", status: 400 });
+			}
+
+			if (type === "ban") {
+				await userService.ban(userId, true, req.body["reason"] ?? null);
+			} else {
+				await userService.timeout(userId, true);
+			}
+
+			return res.status(200)
+				.json({});
+		} catch (error) {
+			console.error("Error suspending user:", error);
+			return res.status(500)
+				.json({ error: "Internal Server Error", status: 500 });
+		}
+	});
 
 
 	app.get(["/admin/tickets", "/admin/closed-tickets", "/admin/closed-reports"], authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
@@ -592,7 +618,37 @@ export default function (app: App) {
 				.json({ error: "Internal Server Error", status: 500 });
 		}
 	});
+	//-----------------------------------------------------------------------------------------------
+	//Arreglo de busqueda de alianzas
+	app.get("/admin/alliances/search", authMiddleware, adminMiddleware, async (req, res) => {
+		try {
+			const query = req.query["q"] as string ?? "";
+			const queryId = Number.parseInt(query) || 0;
 
+			let where: Prisma.AllianceWhereInput = {
+				name: { contains: query }
+			};
+
+			if (!Number.isNaN(queryId) && queryId !== 0) {
+				where = { id: queryId };
+			}
+
+			const results = await prisma.alliance.findMany({
+				where,
+				take: 20,
+				orderBy: { createdAt: "desc" },
+				select: { id: true, name: true, pixelsPainted: true }
+			});
+
+			return res.status(200)
+				.json({ results });
+		} catch (error) {
+			console.error("Error assigning new tickets:", error);
+			return res.status(500)
+				.json({ error: "Internal Server Error", status: 500 });
+		}
+	});
+	//-------------------------------------------------------------------------------------------------
 	app.get(["/admin/alliances/:id", "/admin/alliances/:id/full"], authMiddleware, adminMiddleware, async (req, res) => {
 		try {
 			const id = Number.parseInt(req.params["id"] as string ?? "");
@@ -641,43 +697,95 @@ export default function (app: App) {
 		}
 	});
 
-	app.get("/admin/alliances/search", authMiddleware, adminMiddleware, async (req, res) => {
+	// app.get("/admin/alliances/search", authMiddleware, adminMiddleware, async (req, res) => {
+	// 	try {
+	// 		const query = req.query["q"] as string ?? "";
+	// 		const queryId = Number.parseInt(query) || 0;
+
+	// 		let where: Prisma.AllianceWhereInput = {
+	// 			name: {
+	// 				contains: query
+	// 			}
+	// 		};
+
+	// 		if (!Number.isNaN(queryId) && queryId !== 0) {
+	// 			where = {
+	// 				id: queryId
+	// 			};
+	// 		}
+
+	// 		const results = await prisma.alliance.findMany({
+	// 			where,
+	// 			take: 20,
+	// 			orderBy: { createdAt: "desc" },
+	// 			select: {
+	// 				id: true,
+	// 				name: true,
+	// 				pixelsPainted: true
+	// 			}
+	// 		});
+
+	// 		return res.status(200)
+	// 			.json({ results });
+	// 	} catch (error) {
+	// 		console.error("Error assigning new tickets:", error);
+	// 		return res.status(500)
+	// 			.json({ error: "Internal Server Error", status: 500 });
+	// 	}
+	// });
+
+	app.post("/admin/alliances/:id/rename", authMiddleware, adminMiddleware, async (req, res) => {
 		try {
-			const query = req.query["q"] as string ?? "";
-			const queryId = Number.parseInt(query) || 0;
-
-			let where: Prisma.AllianceWhereInput = {
-				name: {
-					contains: query
-				}
-			};
-
-			if (!Number.isNaN(queryId) && queryId !== 0) {
-				where = {
-					id: queryId
-				};
-			}
-
-			const results = await prisma.alliance.findMany({
-				where,
-				take: 20,
-				orderBy: { createdAt: "desc" },
-				select: {
-					id: true,
-					name: true,
-					pixelsPainted: true
-				}
+			await prisma.alliance.update({
+				where: { id: Number(req.params.id) },
+				data: { name: req.body.name }
 			});
-
-			return res.status(200)
-				.json({ results });
+			return res.status(200).json({ success: true });
 		} catch (error) {
-			console.error("Error assigning new tickets:", error);
-			return res.status(500)
-				.json({ error: "Internal Server Error", status: 500 });
+			return res.status(500).json({ error: "Internal Server Error" });
 		}
 	});
 
+	app.post("/admin/alliances/:id/leader", authMiddleware, adminMiddleware, async (req, res) => {
+			try {
+				const allianceId = Number(req.params.id);
+				const newLeaderId = Number(req.body.newLeaderId);
+	
+				if (isNaN(allianceId) || isNaN(newLeaderId)) {
+					return res.status(400).json({ error: "ID faltante o inválido" });
+				}
+	
+				await prisma.$transaction([
+					prisma.user.updateMany({
+						where: { allianceId, role: UserRole.Admin },
+						data: { role: UserRole.User }
+					}),
+					prisma.user.update({
+						where: { id: newLeaderId },
+						data: { allianceId, role: UserRole.Admin }
+					})
+				]);
+				return res.status(200).json({ success: true });
+			} catch (error) {
+				console.error(error);
+				return res.status(500).json({ error: "Internal Server Error" });
+			}
+		});
+		app.post("/admin/alliances/:id/remove-member", authMiddleware, adminMiddleware, async (req, res) => {
+		try {
+			const userId = Number(req.body.userId);
+			if (isNaN(userId)) return res.status(400).json({ error: "Invalid User ID" });
+			await prisma.user.update({
+				where: { id: userId },
+				data: { allianceId: null, role: UserRole.User }
+			});
+			return res.status(200).json({ success: true });
+		} catch (error) {
+			return res.status(500).json({ error: "Internal Server Error" });
+		}
+	});
+
+	// ---------------------------------------------------------------------------------------------
 	app.post("/admin/remove-ban", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
 		try {
 			const userId = Number.parseInt(req.body["userId"] as string ?? "") || 0;
@@ -731,6 +839,82 @@ export default function (app: App) {
 				.json({ error: "Internal Server Error", status: 500 });
 		}
 	});
+
+	//-------------------------------------------------------------------------------------------------------------
+	app.post("/admin/alliances/:id/ban-all", authMiddleware, adminMiddleware, async (req, res) => {
+			try {
+				const allianceId = Number(req.params.id);
+				if (isNaN(allianceId)) return res.status(400).json({ error: "Invalid Alliance ID" });
+				await prisma.user.updateMany({
+					where: { allianceId },
+					data: { banned: true, suspensionReason: "Alliance termination" }
+				});
+				return res.status(200).json({ success: true });
+			} catch (error) {
+				return res.status(500).json({ error: "Internal Server Error" });
+			}
+		});
+	app.post("/admin/users/set-user-droplets", authMiddleware, adminMiddleware, async (req, res) => {
+		try {
+			const userId = Number.parseInt(req.body["userId"] as string ?? "") || 0;
+			const droplets = Number.parseInt(req.body["droplets"] as string ?? "") || 0;
+			if (Number.isNaN(userId) || userId <= 0 || Number.isNaN(droplets)) {
+				return res.status(400).json({ error: "Bad Request" });
+			}
+			const user = await prisma.user.findUnique({ where: { id: userId } });
+			if (!user) return res.status(404).json({ error: "User not found" });
+
+			await prisma.user.update({
+				where: { id: userId },
+				data: { droplets: user.droplets + droplets }
+			});
+			return res.status(200).json({ success: true });
+		} catch (error) {
+			return res.status(500).json({ error: "Internal Server Error" });
+		}
+	});
+	app.post("/admin/users/increment-droplet", authMiddleware, adminMiddleware, async (req, res) => {
+		try {
+			const { userIds, delta } = req.body;
+			const ids = Array.isArray(userIds) ? userIds.map((id: any) => Number(id)) : String(userIds || "").split(",").map(id => Number(id.trim())).filter(id => !isNaN(id));
+			await prisma.user.updateMany({
+				where: { id: { in: ids } },
+				data: { droplets: { increment: Number(delta || 0) } }
+			});
+			return res.status(200).json({ success: true });
+		} catch (e) {
+			return res.status(500).json({ error: "Error" });
+		}
+	});
+	//-------------------------------------------------------------------------------------------------------------
+	app.get("/admin/event/status", authMiddleware, adminMiddleware, async (_req, res) => {
+  try {
+    return res.status(200).json({
+      active: false,
+      eventName: null
+    });
+  } catch (error) {
+    console.error("Error getting event status:", error);
+    return res.status(500).json({ error: "Internal Server Error", status: 500 });
+  }
+});
+
+app.post("/admin/event/start", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { eventName, quantity, startEventDate, endEventDate } = req.body;
+
+    if (!eventName) {
+      return res.status(400).json({ error: "Bad Request", status: 400 });
+    }
+
+    return res.status(200).json({
+      success: true
+    });
+  } catch (error) {
+    console.error("Error starting event:", error);
+    return res.status(500).json({ error: "Internal Server Error", status: 500 });
+  }
+});
 
 	app.get("/admin", authMiddleware, adminMiddleware, async (_req, res) => {
 		const html = await fs.readFile("./frontend/admin.html", "utf8");

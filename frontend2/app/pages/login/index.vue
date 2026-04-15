@@ -5,7 +5,7 @@
 		<div class="card">
 			<div class="brand">
 				<div class="pixel-title" ref="pixelTitle" />
-				<p class="subtitle">welcome back</p>
+				<p class="subtitle">Que mira gato</p>
 			</div>
 
 			<form @submit="submit" :disabled="loading ? 'disabled' : null">
@@ -14,7 +14,7 @@
 					<input
 						v-model="username"
 						type="text"
-						placeholder="your_username"
+						placeholder="pinga"
 						autocomplete="username"
 						required
 						autofocus
@@ -44,14 +44,14 @@
 				</div>
 
 				<button type="submit" class="btn-primary" :disabled="loading">
-					<span v-if="!loading">Sign in</span>
+					<span v-if="!loading">Entrar</span>
 					<span v-else class="loader" />
 				</button>
 			</form>
 
 			<p class="register-link">
-				New here?
-				<RouterLink :to="rulesURL">Create an account</RouterLink>
+				Nuevo aca?
+				<RouterLink :to="rulesURL">Vende tu alma</RouterLink>
 			</p>
 		</div>
 	</div>

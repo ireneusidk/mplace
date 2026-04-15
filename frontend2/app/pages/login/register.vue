@@ -1,6 +1,6 @@
 <template>
 	<form class="form" :disabled="loading ? 'disabled' : null" @submit="submit">
-		<h2 class="head">Welcome aboard!</h2>
+		<h2 class="head">Mmm... Medialunas</h2>
 
 		<InputText
 			v-model="username"
@@ -29,18 +29,18 @@
 
 		<div class="buttons-container">
 			<Button severity="primary" type="submit" :disabled="loading">
-				Register
+				Registrarse
 			</Button>
 		</div>
 
 		<div class="agreement">
-			By registering, you agree to the rules set by the owner of this instance.
+			By registering, you agree to eat medialunas forever.
 		</div>
 
 		<div class="reset-link">
-			Already have an account?
+			Ya estas registrado?
 			<RouterLink :to="loginURL">
-				Log in
+				Loguearse
 			</RouterLink>
 		</div>
 	</form>

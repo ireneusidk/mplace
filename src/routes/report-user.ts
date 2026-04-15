@@ -105,6 +105,7 @@ export default function (app: App) {
 
 app.post("/admin/ban-user", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
 	try {
+		console.log("HIT BAN");
 		const reportedUserId = Number(req.body.reportedUserId);
 
 		if (!reportedUserId) {
@@ -120,7 +121,7 @@ app.post("/admin/ban-user", authMiddleware, adminMiddleware, async (req: Authent
 	}
 });
 	app.post("/moderator/timeout-user", authMiddleware, adminMiddleware, useMulterSingle("image"), async (req: AuthenticatedRequest, res) => {
-		try {
+		try {console.log("HIT TIMEOUT");
 			const ticket = await makeTicket(req, res);
 			if (!ticket) {
 				return;
@@ -159,4 +160,25 @@ app.post("/moderator/users/suspend", authMiddleware, adminMiddleware, async (req
 		return res.status(500).json({ error: "Internal Server Error" });
 	}
 });
+
+app.post("/moderator/quick-timeout", authMiddleware, adminMiddleware, async (req: AuthenticatedRequest, res) => {
+	try {
+		 console.log("HIT QUICK TIMEOUT");
+		const userIds = req.body.userIds;
+
+		if (!userIds || !Array.isArray(userIds)) {
+			return res.status(400).json({ error: "Missing user ids" });
+		}
+
+		for (const userId of userIds) {
+			await ticketService.timeoutDirect(userId, req.user!.id);
+		}
+
+		return res.status(200).json({});
+	} catch (error) {
+		console.error("Error quick timeout:", error);
+		return res.status(500).json({ error: "Internal Server Error" });
+	}
+});
+
 }

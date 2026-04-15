@@ -36,7 +36,7 @@
 			class="notification-empty"
 		>
 			<strong>No notifications</strong>
-			<span>You'll receive notifications as you use openplace.</span>
+			<span>You'll receive notifications as you use mplace.</span>
 		</div>
 
 		<div

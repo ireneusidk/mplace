@@ -26,6 +26,9 @@ export class TicketService {
 	async resolveDirectBan(userId: number, moderatorUser: number) {
 	await this.userService.ban(userId, true, BanReason.Other);
 }
+async timeoutDirect(userId: number, moderatorUser: number) {
+		await this.userService.timeout(userId, true);
+}
 	async reportUser(input: ReportUserInput): Promise<Ticket> {
 		const image = await loadImage(input.image.buffer);
 		const canvas = createCanvas(image.width, image.height);

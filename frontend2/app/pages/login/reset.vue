@@ -1,105 +1,53 @@
 <template>
-	<form
-		class="form"
-		@submit="submit"
-	>
-		<h2 class="head">Reset Password</h2>
-		<p>Forgot your password? Don't worry, I don't know it either.</p>
-
-		<InputText
-			v-model="username"
-			placeholder="openplace username"
-			aria-label="Username"
-			autocomplete="username"
-			required
-			autofocus
-			:disabled="loading"
-		/>
-
-		<Message
-			v-if="success"
-			severity="success"
-		>
-			Please check your DMs for a password reset link. If you did not receive a DM, ensure your privacy settings allow DMs from our server.
-		</Message>
-
-		<Message
-			v-if="errorMessage"
-			severity="error"
-		>
-			{{ errorMessage }}
-		</Message>
-
-		<div class="buttons-container">
-			<Button
-				severity="primary"
-				type="submit"
-				:disabled="loading"
-			>
-				Reset Password
-			</Button>
-		</div>
-
-		<div class="reset-link">
-			<RouterLink :to="loginURL">
-				Back
-			</RouterLink>
-		</div>
-	</form>
+	<div class="video-wrapper">
+		<iframe 
+			src="https://www.youtube.com/embed/9tdbzDYe-LA?playlist=9tdbzDYe-LA&loop=1&autoplay=1&mute=0&controls=0&modestbranding=1&rel=0" 
+			frameborder="0" 
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+			referrerpolicy="strict-origin-when-cross-origin" 
+			allowfullscreen
+		></iframe>
+	</div>
 </template>
 
 <script setup lang="ts">
-import Button from "primevue/button";
-import Message from "primevue/message";
-import { useErrorToast } from "~/composables/useErrorToast";
-
-const { getErrorMessage } = useErrorToast();
-
 definePageMeta({
-	layout: "auth"
+	layout: false
 });
-
-const route = useRoute();
-
-const loading = ref(false);
-const username = ref("");
-const success = ref(false);
-const errorMessage = ref<string | null>(null);
-const loginURL = ref("/login");
-
-onMounted(() => {
-	const returnTo = route.query.r as string;
-	if (returnTo) {
-		const params = new URLSearchParams([["r", returnTo]]);
-		loginURL.value = `/login?${params.toString()}`;
-	}
-});
-
-const submit = async (e: Event) => {
-	e.preventDefault();
-	loading.value = true;
-	success.value = false;
-	errorMessage.value = null;
-
-	try {
-		const config = useRuntimeConfig();
-		await $fetch(`${config.public.backendUrl}/auth/request-password-reset`, {
-			method: "POST",
-			credentials: "include",
-			body: {
-				username: username.value
-			}
-		});
-
-		success.value = true;
-	} catch (error: unknown) {
-		errorMessage.value = getErrorMessage(error);
-	}
-
-	loading.value = false;
-};
 </script>
 
 <style scoped>
-/* */
+.video-wrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	background-color: #000;
+}
+
+.video-wrapper iframe {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 100vw;
+	height: 100vh;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+@media (min-aspect-ratio: 9/16) {
+	.video-wrapper iframe {
+		width: 177.78vh;
+		height: 100vh;
+	}
+}
+
+@media (max-aspect-ratio: 9/16) {
+	.video-wrapper iframe {
+		width: 100vw;
+		height: 56.25vw;
+	}
+}
 </style>

@@ -27,16 +27,17 @@
 					width="64"
 					height="64"
 				>
-				<span>openplace</span>
+				<span>mplace</span>
 			</div>
 
 			<div class="section">
 				<p>
-					openplace is a free unofficial open source backend for wplace. We aim to give the freedom and flexibility for all users to be able to make their own private wplace experience for themselves, their friends, or even their community.
+					mplace is a free unofficial open source backend for wplace. We aim to give the freedom and flexibility for all users to be able to make their own private wplace experience for themselves, their friends, or even their community.
+					mplace — brought to life by BloodyMoon and Metalix
 				</p>
 
 				<p v-if="isOpenplaceLive">
-					<strong>This is the official openplace.live instance.</strong> Join our <a href="https://discord.gg/ZRC4DnP9Z2">Discord community</a>!
+					<strong>This is the official mplace.live instance.</strong> Join our <a href="https://discord.gg/wdxM2TaaEs">Discord community</a>!
 				</p>
 
 				<p v-else>
@@ -48,14 +49,14 @@
 				<h3>Rules</h3>
 
 				<p>
-					To keep openplace fair and safe for everyone, you are expected to follow these rules. Violations may result in a temporary or permanent ban.
+					To keep mplace fair and safe for everyone, you are expected to follow these rules. Violations may result in a temporary or permanent ban.
 				</p>
 
 				<Rules :is-visible="isOpen" />
 			</div>
 
 			<p class="muted">
-				openplace is developed by <a href="https://github.com/openplaceteam/openplace/contributors" target="_blank">open source contributors</a>. It uses maps hosted by <a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a>.
+				mplace is developed by <a href="https://github.com/openplaceteam/openplace/contributors" target="_blank">open source contributors</a>. It uses maps hosted by <a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a>.
 			</p>
 
 			<p class="muted">

@@ -35,7 +35,7 @@
 		<div class="app-overlays">
 			<div class="app-overlays-zoom">
 				<MapButton
-					v-tooltip.right="'About openplace'"
+					v-tooltip.right="'About mplace'"
 					@click="isAboutOpen = true"
 				>
 					<InfoIcon />

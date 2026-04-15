@@ -42,7 +42,7 @@ const items = ref([
 							alt=""
 							class="logo"
 						>
-						<span class="logo-text">openplace admin</span>
+						<span class="logo-text">mplace admin</span>
 					</NuxtLink>
 				</template>
 				<template #item="{ item }">

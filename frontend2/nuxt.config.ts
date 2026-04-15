@@ -47,7 +47,7 @@ export default defineNuxtConfig({
 		baseURL: "/",
 
 		head: {
-			title: "openplace",
+			title: "mplace",
 
 			htmlAttrs: {
 				lang: "en"
@@ -72,11 +72,11 @@ export default defineNuxtConfig({
 				},
 				{
 					property: "og:site_name",
-					content: "openplace"
+					content: "mplace",
 				},
 				{
 					property: "og:title",
-					content: "openplace"
+					content: "mplace",
 				},
 				{
 					property: "og:image",
@@ -104,7 +104,7 @@ export default defineNuxtConfig({
 				{
 					name: "theme-color",
 					content: "#4169e1",
-					media: "only _" // Used by Discord
+					media: "on	ly _" // Used by Discord
 				}
 			],
 

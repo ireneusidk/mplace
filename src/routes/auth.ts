@@ -142,7 +142,33 @@ export default function (app: App) {
 				return res.status(400)
 					.json({ error: "Username already exists" });
 			}
+			
+	const ip =
+			req.headers["x-forwarded-for"]?.toString().split(",")[0].trim()
+			|| req.socket?.remoteAddress
+			|| req.ip
+			|| "unknown";
 
+		
+		const usersWithIP = await prisma.user.findMany({
+			where: {
+				OR: [
+					{ registrationIP: ip },
+					{ lastIP: ip }
+				]
+			}
+		});
+
+		
+		if (usersWithIP.length >= 2) {
+			console.warn("🚨 POSSIBLE MULTIACCOUNT DETECTED");
+			console.warn(`IP: ${ip}`);
+			console.warn(`Total accounts: ${usersWithIP.length}`);
+
+			for (const u of usersWithIP) {
+				console.warn(`- ${u.name} (#${u.id})`);
+			}
+		}
 			let country = req.get("cf-ipcountry") as string ?? null;
 			if (!(/^[A-Z]{2}$/).test(country)) {
 				country = "US";

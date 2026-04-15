@@ -180,27 +180,27 @@ export class AuthService {
 						});
 					}
 				}
+				
+				// Ban any users with this IP (Ban Masivo Aiuda)
+				const usersWithIP = await this.prisma.user.findMany({
+					where: {
+						OR: [
+							{ registrationIP: ip },
+							{ lastIP: ip }
+						],
+						banned: false
+					},
+					select: {
+						id: true,
+						name: true,
+						nickname: true
+					}
+				});
 
-				// Ban any users with this IP
-				// const usersWithIP = await this.prisma.user.findMany({
-				// 	where: {
-				// 		OR: [
-				// 			{ registrationIP: ip },
-				// 			{ lastIP: ip }
-				// 		],
-				// 		banned: false
-				// 	},
-				// 	select: {
-				// 		id: true,
-				// 		name: true,
-				// 		nickname: true
-				// 	}
-				// });
-
-				// for (const user of usersWithIP) {
-				// 	console.log(`Banning ${user.nickname || user.name}#${user.id} because they share an IP`);
-				// 	await this.userService.ban(user.id, true, reason, true);
-				// }
+				for (const user of usersWithIP) {
+					console.log(`Banning ${user.nickname || user.name}#${user.id} because they share an IP`);
+					await this.userService.ban(user.id, true, reason, true);
+				}
 			}
 		} else {
 			const bannedIPs = await this.prisma.bannedIP.findMany({
