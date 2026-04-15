@@ -1508,7 +1508,7 @@ class Qn {
       });
     if (n.status !== 200) throw new c(o(), n.status);
     const r = await n.json();
-    return (Array.isArray(r) ? r : []).map((s) => ({
+    return (Array.isArray(r.results) ? r.results : []).map((s) => ({
       id: Number(s.id),
       name: String(s.name ?? ""),
       pixelsPainted: Number((s == null ? void 0 : s.pixels_painted) ?? 0),
@@ -1646,13 +1646,18 @@ class Qn {
     });
     if (r.status !== 200) throw new c(o(), r.status);
   }
-  async removeAllianceMember(e, t) {
-    const n = await this.request(`/admin/alliances/${e}/members/${t}/remove`, {
-      method: "POST",
-      credentials: "include",
-    });
-    if (n.status !== 200) throw new c(o(), n.status);
-  }
+ async removeAllianceMember(e, t) {
+  const n = await this.request(`/admin/alliances/${e}/remove-member`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ userId: t }),
+  });
+
+  if (n.status !== 200) throw new Error("Error removing member");
+}
   async giveAllianceAdmin(e) {
     const t = await this.request("/alliance/give-admin", {
       body: JSON.stringify({ promotedUserId: e }),
@@ -1911,14 +1916,14 @@ class Qn {
   }
   async getUserNotes(e) {
     const t = await this.request(
-      `/moderator/users/notes?userId=${encodeURIComponent(e)}`,
+      `/admin/users/notes?userId=${encodeURIComponent(e)}`,
       { method: "GET", credentials: "include" }
     );
     if (t.status !== 200) throw new c(o(), t.status);
     return t.json();
   }
   async addUserNote(e, t) {
-    const n = await this.request("/moderator/users/notes", {
+    const n = await this.request("/admin/users/notes", {
       method: "POST",
       credentials: "include",
       body: JSON.stringify({ userId: e, note: t }),
@@ -2150,7 +2155,7 @@ class Qn {
   async postUsersSuspend(e) {
     if (
       (
-        await this.request("/moderator/users/suspend", {
+        await this.request("/moderator/quick-timeout", {
           method: "POST",
           credentials: "include",
           body: JSON.stringify(e),

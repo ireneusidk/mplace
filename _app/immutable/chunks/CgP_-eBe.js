@@ -84,7 +84,7 @@ function ge(a, e, n) {
 const he = (a) => `Login with ${a.name}`,
   ye = (a) => `Entrar com ${a.name}`,
   we = (a, e = {}) => ((e.locale ?? h()) === "en" ? he(a) : ye(a)),
-  xe = () => "By signing in, you agree to the rules set by the owner of this instance.",
+  xe = () => "By signing in, you agree to give us your soul.",
   ke = () => "",
   Ie = (a = {}, e = {}) => ((e.locale ?? h()) === "en" ? xe() : ke()),
   Ce = () => "Terms of Service",
@@ -312,7 +312,7 @@ function ct(a, e) {
               O(v, "href", x),
               g(M, ` ${W ?? ""}`);
           },
-          [() => (k(r) ? y("", k(r)) : "#"), () => we({ name: "openplace" })]
+          [() => (k(r) ? y("", k(r)) : "#"), () => we({ name: "MPlace" })]
         ),
         I(c, i);
     };
